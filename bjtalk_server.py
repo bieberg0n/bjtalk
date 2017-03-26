@@ -19,20 +19,24 @@ def start_serv():
     serv.bind(('0.0.0.0', 20170))
     clock = int(time.time())
 
-    while True:
-        now = int(time.time())
-        if now - clock > 5:
-            users = {user: users[user] for user in users.keys() if (now-users[user]) < 5}
-            pprint.pprint(users)
-            clock = now
+    try:
+        while True:
+            now = int(time.time())
+            if now - clock > 5:
+                users = {user: users[user] for user in users.keys()
+                         if (now-users[user]) < 5}
+                pprint.pprint(users)
+                clock = now
 
-        else:
-            pass
+            else:
+                pass
 
-        data, addr = serv.recvfrom(4096)
-        users[addr] = now
-        # print(addr, len(data))
-        handle(data, addr, users, serv)
+            data, addr = serv.recvfrom(4096)
+            users[addr] = now
+            # print(addr, len(data))
+            handle(data, addr, users, serv)
+    except KeyboardInterrupt:
+        print('Server exit.')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,7 @@
 import socket
 import pyaudio
+import sys
+import json
 from threading import Thread
 
 
@@ -16,10 +18,11 @@ def play(cli, stream):
         stream.write(data, 1024)
 
 
-def main():
+def bjtalk(cli_addr, serv_addr):
+
     p = pyaudio.PyAudio()
     cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    cli.bind(('0.0.0.0', 20171))
+    cli.bind(cli_addr)
 
     # stream = p.open(format=p.get_format_from_width(WIDTH),
     stream = p.open(format=1,
@@ -35,11 +38,12 @@ def main():
     t = Thread(target=play, args=(cli, stream,))
     t.setDaemon(True)
     t.start()
+    print('connect to {}'.format())
     try:
         while True:
             data = stream.read(1024)
-            cli.sendto(data, ('192.168.233.5', 20170))
-            print(len(data))
+            cli.sendto(data, serv_addr)
+            # print(len(data))
             # stream.write(data, 1024)
 
     except KeyboardInterrupt:
@@ -53,4 +57,21 @@ def main():
     p.terminate()
 
 
-main()
+if __name__ == '__main__':
+    if len(sys.argv[1:]) <= 1:
+        print('''{
+    "listen":"0.0.0.0:20171",
+    "server":"example.com:20170"
+''')
+
+    else:
+        json_file = sys.argv[1]
+        with open(json_file) as f:
+            cfg = json.loads(f.read())
+
+        cli_ip, cli_port_str = cfg['listen']
+        serv_ip, serv_port_str = cfg['server']
+        cli_addr = (cli_ip, int(cli_port_str))
+        serv_addr = (serv_ip, int(serv_port_str))
+
+        bjtalk(cli_addr, serv_addr)
