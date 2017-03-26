@@ -1,6 +1,7 @@
 import socket
 import time
 import pprint
+from struct import pack
 
 
 # users = {
@@ -8,8 +9,16 @@ import pprint
 # ('127.0.0.2', 20170):234
 # }
 
+def addr_to_bytes(addr):
+    ip, port = addr
+    ip_bytes = b''.join([pack('B', int(i)) for i in ip.split('.')])
+    port_bytes = pack('>H', port)
+    return ip_bytes + port_bytes
+
+
 def handle(data, addr, users, serv):
-    [serv.sendto(data, user) for user in users if user != addr]
+    addr_bytes = addr_to_bytes(addr)
+    [serv.sendto(addr_bytes+data, user) for user in users if user != addr]
     return
 
 

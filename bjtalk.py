@@ -2,6 +2,8 @@ import socket
 import pyaudio
 import sys
 import json
+import queue
+from struct import unpack
 from threading import Thread
 
 
@@ -12,10 +14,29 @@ from threading import Thread
 # RECORD_SECONDS = 5
 
 
-def play(cli, stream):
+def play(q):
+    stream = p.open(format=1,
+                    channels=1,
+                    rate=22050,
+                    # input=True,
+                    output=True,
+                    frames_per_buffer=1024)
     while True:
-        data, addr = cli.recvfrom(4096)
+    #     data, addr = cli.recvfrom(4096)
+        data = q.get()
         stream.write(data, 1024)
+
+
+def record(cli, serv_addr, stream):
+    while True:
+        data = stream.read(1024)
+        cli.sendto(data, serv_addr)
+
+
+def get_addr_from_data(bytes):
+    ip = '.'.join([str(unpack('B', i)) for i in bytes[:4]])
+    port = unpack('>H', bytes[4:])
+    return (ip, port)
 
 
 def bjtalk(cli_addr, serv_addr):
@@ -27,27 +48,31 @@ def bjtalk(cli_addr, serv_addr):
     # stream = p.open(format=p.get_format_from_width(WIDTH),
     stream = p.open(format=1,
                     channels=1,
-                    rate=8000,
+                    rate=22050,
                     input=True,
                     output=True,
                     frames_per_buffer=1024)
 
-    print("* recording")
-
-    # for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    t = Thread(target=play, args=(cli, stream,))
+    print('connect to {}'.format(serv_addr))
+    t = Thread(target=record, args=(cli, serv_addr, stream,))
     t.setDaemon(True)
     t.start()
-    print('connect to {}'.format(serv_addr))
-    try:
-        while True:
-            data = stream.read(1024)
-            cli.sendto(data, serv_addr)
-            # print(len(data))
-            # stream.write(data, 1024)
 
-    except KeyboardInterrupt:
-        pass
+    print("* recording")
+    queues = dict()
+    while True:
+        data, _ = cli.recvfrom(4096)
+        addr_bytes, data = data[:6], data[6:]
+        addr = get_addr_from_data(addr_bytes)
+        if queues.get(addr):
+            queues[addr].put(data)
+        else:
+            q = queue.Queue()
+            t = Thread(target=play, args=(q, ))
+            t.setDaemon(True)
+            t.start()
+            queues[addr] = q
+            queues[addr].put(data)
 
     print("* done")
 
