@@ -15,6 +15,7 @@ from threading import Thread
 
 
 def play(q):
+    p = pyaudio.PyAudio()
     stream = p.open(format=1,
                     channels=1,
                     rate=22050,
@@ -33,9 +34,12 @@ def record(cli, serv_addr, stream):
         cli.sendto(data, serv_addr)
 
 
-def get_addr_from_data(bytes):
-    ip = '.'.join([str(unpack('B', i)) for i in bytes[:4]])
-    port = unpack('>H', bytes[4:])
+def get_addr_from_data(bytes_):
+    # print(bytes_)
+    # ip = '.'.join([str(unpack('B', i)) for i in bytes_[:4]])
+    ip = '.'.join([str(i) for i in bytes_[:4]])
+    # print(ip)
+    port = unpack('>H', bytes_[4:])
     return (ip, port)
 
 
@@ -61,12 +65,15 @@ def bjtalk(cli_addr, serv_addr):
     print("* recording")
     queues = dict()
     while True:
-        data, _ = cli.recvfrom(4096)
+        data, _ = cli.recvfrom(4102)
         addr_bytes, data = data[:6], data[6:]
         addr = get_addr_from_data(addr_bytes)
+
         if queues.get(addr):
             queues[addr].put(data)
+
         else:
+            print('{} incoming'.format(addr))
             q = queue.Queue()
             t = Thread(target=play, args=(q, ))
             t.setDaemon(True)
