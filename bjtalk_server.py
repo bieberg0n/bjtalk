@@ -21,8 +21,8 @@ def start_serv():
 
     while True:
         now = int(time.time())
-        if now - clock > 60:
-            users = {user: users[user] for user in users.keys() if (now-users[user]) < 60}
+        if now - clock > 5:
+            users = {user: users[user] for user in users.keys() if (now-users[user]) < 5}
             pprint.pprint(users)
             clock = now
 
@@ -31,7 +31,7 @@ def start_serv():
 
         data, addr = serv.recvfrom(4096)
         users[addr] = now
-        print(addr, len(data))
+        # print(addr, len(data))
         handle(data, addr, users, serv)
 
 
