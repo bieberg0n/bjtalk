@@ -31,7 +31,7 @@ def start_serv():
 
         data, addr = serv.recvfrom(4096)
         users[addr] = now
-        # print(len(data), addr, users)
+        print(addr, len(data))
         handle(data, addr, users, serv)
 
 

@@ -1,5 +1,6 @@
 import socket
 import pyaudio
+from threading import Thread
 
 
 # CHUNK = 1024
@@ -7,6 +8,12 @@ import pyaudio
 # CHANNELS = 2
 # RATE = 44100
 # RECORD_SECONDS = 5
+
+
+def play(cli, stream):
+    while True:
+        data, addr = cli.recvfrom(4096)
+        stream.write(data, 1024)
 
 
 def main():
@@ -25,12 +32,15 @@ def main():
     print("* recording")
 
     # for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+    t = Thread(target=play, args=(cli, stream,))
+    t.setDaemon(True)
+    t.start()
     try:
         while True:
             data = stream.read(1024)
-            cli.sendto(data, ('127.0.0.1', 20170))
+            cli.sendto(data, ('192.168.233.5', 20170))
             print(len(data))
-            stream.write(data, 1024)
+            # stream.write(data, 1024)
 
     except KeyboardInterrupt:
         pass
