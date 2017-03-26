@@ -38,7 +38,7 @@ def bjtalk(cli_addr, serv_addr):
     t = Thread(target=play, args=(cli, stream,))
     t.setDaemon(True)
     t.start()
-    print('connect to {}'.format())
+    print('connect to {}'.format(serv_addr))
     try:
         while True:
             data = stream.read(1024)
@@ -58,19 +58,19 @@ def bjtalk(cli_addr, serv_addr):
 
 
 if __name__ == '__main__':
-    if len(sys.argv[1:]) <= 1:
+    if len(sys.argv[1:]) < 1:
         print('''{
     "listen":"0.0.0.0:20171",
     "server":"example.com:20170"
-''')
+}''')
 
     else:
         json_file = sys.argv[1]
         with open(json_file) as f:
             cfg = json.loads(f.read())
 
-        cli_ip, cli_port_str = cfg['listen']
-        serv_ip, serv_port_str = cfg['server']
+        cli_ip, cli_port_str = cfg['listen'].split(':')
+        serv_ip, serv_port_str = cfg['server'].split(':')
         cli_addr = (cli_ip, int(cli_port_str))
         serv_addr = (serv_ip, int(serv_port_str))
 
