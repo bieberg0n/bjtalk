@@ -87,3 +87,5 @@ ENV/
 
 # Rope project settings
 .ropeproject
+bjtalk_aserver.py
+*.json

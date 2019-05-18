@@ -3,6 +3,7 @@ import pyaudio
 import sys
 import json
 import queue
+import zlib
 from struct import unpack
 from threading import Thread
 
@@ -18,19 +19,21 @@ def play(q):
     p = pyaudio.PyAudio()
     stream = p.open(format=1,
                     channels=1,
-                    rate=22050,
+                    rate=8000,
                     # input=True,
                     output=True,
                     frames_per_buffer=1024)
     while True:
     #     data, addr = cli.recvfrom(4096)
         data = q.get()
-        stream.write(data, 1024)
+        stream.write(data, 256)
 
 
 def record(cli, serv_addr, stream):
     while True:
-        data = stream.read(1024)
+        data = stream.read(256)
+        # data = zlib.compress(data, level=9)
+        # print(len(data))
         cli.sendto(data, serv_addr)
 
 
@@ -52,7 +55,7 @@ def bjtalk(cli_addr, serv_addr):
     # stream = p.open(format=p.get_format_from_width(WIDTH),
     stream = p.open(format=1,
                     channels=1,
-                    rate=22050,
+                    rate=8000,
                     input=True,
                     output=True,
                     frames_per_buffer=1024)
@@ -65,8 +68,9 @@ def bjtalk(cli_addr, serv_addr):
     print("* recording")
     queues = dict()
     while True:
-        data, _ = cli.recvfrom(4102)
+        data, _ = cli.recvfrom(1030)
         addr_bytes, data = data[:6], data[6:]
+        # print(len(data))
         addr = get_addr_from_data(addr_bytes)
 
         if queues.get(addr):

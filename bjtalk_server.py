@@ -1,4 +1,5 @@
 import socket
+import zlib
 import time
 import pprint
 from struct import pack
@@ -18,6 +19,7 @@ def addr_to_bytes(addr):
 
 def handle(data, addr, users, serv):
     addr_bytes = addr_to_bytes(addr)
+
     [serv.sendto(addr_bytes+data, user) for user in users if user != addr]
     return
 
@@ -40,9 +42,10 @@ def start_serv():
             else:
                 pass
 
-            data, addr = serv.recvfrom(4096)
+            data, addr = serv.recvfrom(1024)
             users[addr] = now
             # print(addr, len(data))
+            # data = zlib.decompress(data)
             handle(data, addr, users, serv)
     except KeyboardInterrupt:
         print('Server exit.')
