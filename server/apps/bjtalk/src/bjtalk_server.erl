@@ -31,15 +31,15 @@ start() ->
   loop(Socket, #{}).
 
 loop(Socket, Users) ->
-  io:format("start bjtalk server loop~n"),
+%  io:format("start bjtalk server loop~n"),
   receive
     {udp, Socket, Host, Port, Bin} ->
-      io:format("recv:~p~n", [Bin]),
+%      io:format("recv:~p~n", [Bin]),
       User = {Host, Port},
 
       case maps:is_key(User, Users) of
         true ->
-          io:format("~p ~p active~n", [Host, Port]),
+%          io:format("~p ~p active~n", [Host, Port]),
           maps:get(User, Users) ! {ping},
           broadcast(Socket, maps:keys(Users) -- [User], Bin),
           loop(Socket, Users);
@@ -62,12 +62,12 @@ send(Socket, User, Bin) ->
   gen_udp:send(Socket, Host, Port, Bin).
 
 broadcast(Socket, Users, Bin) ->
-  case Bin of
-    <<"ping">> ->
-      ok;
-    _ ->
-      lists:map(fun(U) -> send(Socket, U, Bin) end, Users)
-  end.
+%  case Bin of
+%    <<"ping">> ->
+%      ok;
+%    _ ->
+  lists:map(fun(U) -> send(Socket, U, Bin) end, Users).
+%  end.
 
 sup_user(User, Master) ->
 %%  {Host, Port} = User,
@@ -75,7 +75,7 @@ sup_user(User, Master) ->
   receive
     {ping} ->
       sup_user(User, Master)
-  after 5000 ->
+  after 10000 ->
     Master ! {timeout, User}
   end.
 
