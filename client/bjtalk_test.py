@@ -13,9 +13,10 @@ class BjtalkClient:
         # ('127.0.0.1', 27010)
         self.serv_addr = serv_addr
         self.c = socket.socket(2, 2)
+        self.c.bind(('127.0.0.1', 27012))
         p = pyaudio.PyAudio()
         self.stream = p.open(
-            format=p.get_format_from_width(1),
+            format=p.get_format_from_width(2),
             channels=1,
             rate=22500,
             input=True,
