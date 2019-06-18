@@ -32,7 +32,7 @@ class BjtalkClient:
         self.serv_addr = serv_addr
         self.username = username
         self.c = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.c.bind(('127.0.0.1', 27011))
+        self.c.bind(('0.0.0.0', 27011))
         self.q = queue.Queue()
         p = pyaudio.PyAudio()
         self.stream = p.open(
