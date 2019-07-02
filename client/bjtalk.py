@@ -35,13 +35,14 @@ class BjtalkClient:
         self.c.bind(('0.0.0.0', 27011))
         self.q = queue.Queue()
         p = pyaudio.PyAudio()
+        self.buf_len = 512
         self.stream = p.open(
             format=p.get_format_from_width(2),
             channels=1,
             rate=22500,
             input=True,
             output=True,
-            frames_per_buffer=256)
+            frames_per_buffer=self.buf_len)
 
     def ping(self):
         while True:
@@ -50,13 +51,13 @@ class BjtalkClient:
 
     def record(self):
         while True:
-            data = self.stream.read(256)
+            data = self.stream.read(self.buf_len)
             self.c.sendto(data, self.serv_addr)
             # self.q.put(data)
-            # return data
 
     def play(self, data):
-        self.stream.write(data, 256)
+        # time.sleep(1)
+        self.stream.write(data, self.buf_len)
 
     def run(self):
         Thread(target=self.ping).start()
@@ -64,14 +65,13 @@ class BjtalkClient:
 
         while True:
             data, _ = self.c.recvfrom(2048)
-            # data = self.record()
             # data = self.q.get()
             if data.startswith(b'ping'):
                 log(data[4:])
 
             else:
-                self.play(data)
-                # Thread(target=self.play, args=(data,)).start()
+                # self.play(data)
+                Thread(target=self.play, args=(data,)).start()
 
 
 def main():
